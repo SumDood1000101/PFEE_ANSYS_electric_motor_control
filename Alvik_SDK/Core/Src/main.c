@@ -46,6 +46,8 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+I2C_HandleTypeDef hi2c1;
+
 TIM_HandleTypeDef htim10;
 
 UART_HandleTypeDef huart1;
@@ -59,6 +61,7 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_TIM10_Init(void);
 static void MX_USART1_UART_Init(void);
+static void MX_I2C1_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -74,16 +77,42 @@ static void rpm_str(char * buf, size_t len, float rpm){
 
 /* One line per call over USART1, read on the PC through the ESP32 bridge */
 static void send_telemetry(void){
-  char r[12], l[12], rr[12], line[64];
-  rpm_str(r, sizeof(r), scade_control_get_target(MOTOR_LEFT));
-  rpm_str(l, sizeof(l), motor_get_rpm(MOTOR_LEFT));
-  rpm_str(rr, sizeof(rr), motor_get_rpm(MOTOR_RIGHT));
-  int n = snprintf(line, sizeof(line), "ref %s  left %s  right %s rpm\r\n", r, l, rr);
+  char lt[12], lm[12], rt[12], rm[12], line[80];
+  rpm_str(lt, sizeof(lt), scade_control_get_target(MOTOR_LEFT));
+  rpm_str(lm, sizeof(lm), motor_get_rpm(MOTOR_LEFT));
+  rpm_str(rt, sizeof(rt), scade_control_get_target(MOTOR_RIGHT));
+  rpm_str(rm, sizeof(rm), motor_get_rpm(MOTOR_RIGHT));
+  int n = snprintf(line, sizeof(line), "L target %s enc %s  |  R target %s enc %s rpm\r\n", lt, lm, rt, rm);
   HAL_UART_Transmit(&huart1, (uint8_t *)line, (uint16_t)n, 10);
 }
 
 static void send_text(const char * s){
   HAL_UART_Transmit(&huart1, (const uint8_t *)s, (uint16_t)strlen(s), 10);
+}
+
+/* Same as rpm_str, with two decimals */
+static void g_str(char * buf, size_t len, float g){
+  int t = (int)(g * 100.0f);
+  int a = (t < 0) ? -t : t;
+  snprintf(buf, len, "%s%d.%02d", (t < 0) ? "-" : "", a / 100, a % 100);
+}
+
+/* Accelerometer (g) and gyro (deg/s) on one line */
+static void send_imu(void){
+  imu_data_t d;
+  if (!imu_read(&d)){
+    send_text("imu read failed\r\n");
+    return;
+  }
+  char ax[12], ay[12], az[12], gx[12], gy[12], gz[12], line[96];
+  g_str(ax, sizeof(ax), d.ax);
+  g_str(ay, sizeof(ay), d.ay);
+  g_str(az, sizeof(az), d.az);
+  rpm_str(gx, sizeof(gx), d.gx);
+  rpm_str(gy, sizeof(gy), d.gy);
+  rpm_str(gz, sizeof(gz), d.gz);
+  int n = snprintf(line, sizeof(line), "acc %s %s %s g  |  gyro %s %s %s dps\r\n", ax, ay, az, gx, gy, gz);
+  HAL_UART_Transmit(&huart1, (uint8_t *)line, (uint16_t)n, 10);
 }
 /* USER CODE END 0 */
 
@@ -120,6 +149,7 @@ int main(void)
   MX_GPIO_Init();
   MX_TIM10_Init();
   MX_USART1_UART_Init();
+  MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
   /* Heartbeat on LED_BUILTIN (PC8); remove once PC8 is set up in CubeMX */
   __HAL_RCC_GPIOC_CLK_ENABLE();
@@ -131,6 +161,8 @@ int main(void)
   HAL_GPIO_Init(GPIOC, &led);
 
   send_text("\r\nAlvik_SDK motor test: wheels start in 2 s\r\n");
+  bool imu_ok = imu_init(&hi2c1);
+  send_text(imu_ok ? "IMU ok\r\n" : "IMU not found\r\n");
   HAL_Delay(START_DELAY_MS);
 
   alvik_init(&htim10);                  // motors off, encoders running, 10 kHz tick on TIM10
@@ -159,6 +191,9 @@ int main(void)
     if (now - last_telemetry >= TELEMETRY_MS){
       last_telemetry = now;
       send_telemetry();
+      if (imu_ok){
+        send_imu();
+      }
     }
   }
   /* USER CODE END 3 */
@@ -208,6 +243,40 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief I2C1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_I2C1_Init(void)
+{
+
+  /* USER CODE BEGIN I2C1_Init 0 */
+
+  /* USER CODE END I2C1_Init 0 */
+
+  /* USER CODE BEGIN I2C1_Init 1 */
+
+  /* USER CODE END I2C1_Init 1 */
+  hi2c1.Instance = I2C1;
+  hi2c1.Init.ClockSpeed = 400000;
+  hi2c1.Init.DutyCycle = I2C_DUTYCYCLE_2;
+  hi2c1.Init.OwnAddress1 = 0;
+  hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+  hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+  hi2c1.Init.OwnAddress2 = 0;
+  hi2c1.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+  hi2c1.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+  if (HAL_I2C_Init(&hi2c1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN I2C1_Init 2 */
+
+  /* USER CODE END I2C1_Init 2 */
+
 }
 
 /**
@@ -287,6 +356,7 @@ static void MX_GPIO_Init(void)
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 

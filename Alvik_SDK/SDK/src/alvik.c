@@ -192,3 +192,68 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef * htim){
         tick_callback();
     }
 }
+
+
+/***************************************************************/
+/*                     IMU (LSM6DSO, I2C1)                     */
+/***************************************************************/
+
+#define IMU_ADDR                (0x6A << 1)     // LSM6DSO_I2C_ADD_L
+#define IMU_WHO_AM_I            0x0F
+#define IMU_WHO_AM_I_ID         0x6C
+#define IMU_CTRL1_XL            0x10
+#define IMU_CTRL2_G             0x11
+#define IMU_CTRL3_C             0x12
+#define IMU_OUTX_L_G            0x22            // gyro xyz, then accel xyz, 12 bytes
+#define IMU_TIMEOUT_MS          10
+
+#define IMU_ACC_G_PER_LSB       0.000122f       // +-4 g
+#define IMU_GYRO_DPS_PER_LSB    0.070f          // +-2000 deg/s
+
+static I2C_HandleTypeDef * imu_i2c;
+
+static bool imu_write_reg(uint8_t reg, uint8_t value){
+    return HAL_I2C_Mem_Write(imu_i2c, IMU_ADDR, reg, I2C_MEMADD_SIZE_8BIT, &value, 1, IMU_TIMEOUT_MS) == HAL_OK;
+}
+
+bool imu_init(I2C_HandleTypeDef * i2c){
+    uint8_t id = 0;
+    imu_i2c = i2c;
+    if (HAL_I2C_Mem_Read(imu_i2c, IMU_ADDR, IMU_WHO_AM_I, I2C_MEMADD_SIZE_8BIT, &id, 1, IMU_TIMEOUT_MS) != HAL_OK
+            || id != IMU_WHO_AM_I_ID){
+        imu_i2c = NULL;
+        return false;
+    }
+    // Same settings as Arduino_AlvikCarrier::beginImu()
+    if (!imu_write_reg(IMU_CTRL3_C, 0x44)        // block data update, register auto-increment
+            || !imu_write_reg(IMU_CTRL1_XL, 0x48)   // accel 104 Hz, +-4 g
+            || !imu_write_reg(IMU_CTRL2_G, 0x4C)){  // gyro 104 Hz, +-2000 deg/s
+        imu_i2c = NULL;
+        return false;
+    }
+    return true;
+}
+
+bool imu_read(imu_data_t * data){
+    uint8_t b[12];
+    int16_t raw[6];
+
+    if (imu_i2c == NULL || data == NULL){
+        return false;
+    }
+    if (HAL_I2C_Mem_Read(imu_i2c, IMU_ADDR, IMU_OUTX_L_G, I2C_MEMADD_SIZE_8BIT, b, sizeof(b), IMU_TIMEOUT_MS) != HAL_OK){
+        return false;
+    }
+    for (int i = 0; i < 6; i++){
+        raw[i] = (int16_t)(b[2 * i] | (b[2 * i + 1] << 8));
+    }
+
+    // Chip axes -> robot axes, as in Arduino_AlvikCarrier.cpp
+    data->gx =  raw[1] * IMU_GYRO_DPS_PER_LSB;
+    data->gy =  raw[0] * IMU_GYRO_DPS_PER_LSB;
+    data->gz = -raw[2] * IMU_GYRO_DPS_PER_LSB;
+    data->ax = -raw[4] * IMU_ACC_G_PER_LSB;
+    data->ay = -raw[3] * IMU_ACC_G_PER_LSB;
+    data->az =  raw[5] * IMU_ACC_G_PER_LSB;
+    return true;
+}
