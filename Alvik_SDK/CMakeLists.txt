@@ -45,12 +45,6 @@ target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
 # Add sources to executable
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user sources here
-    # SCADE One generated code
-    Scade/MotorSystem_PWM.c
-    Scade/swan_consts.c
-    Scade/swan_types.c
-    # Application: runs the SCADE model
-    App/scade_control.c
     # Hardware layer
     SDK/src/alvik.c
 )
@@ -58,8 +52,6 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
 # Add include paths
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined include paths
-    Scade
-    App
     SDK/src
     SDK/definitions
 )

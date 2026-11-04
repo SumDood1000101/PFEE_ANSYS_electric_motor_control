@@ -1,7 +1,6 @@
 /*
     Minimal hardware layer for the Alvik carrier (STM32F411, HAL):
-    switch a motor on/off, read a wheel's speed, run a function at a fixed rate,
-    read the accelerometer and gyroscope.
+    switch a motor on/off, read a wheel's speed, run a function at a fixed rate.
 */
 
 #ifndef __ALVIK_H__
@@ -32,23 +31,9 @@ void motor_set(motor_id_t motor, bool on);
 // Wheel speed in rpm, measured from the encoder every 20 ms
 float motor_get_rpm(motor_id_t motor);
 
-// Call callback ALVIK_TICK_HZ times per second, from the timer interrupt
+// Call callback ALVIK_TICK_HZ times per second, from the timer interrupt.
+// NULL stops the calls.
 void timer_start(void (*callback)(void));
-
-
-typedef struct {
-    float ax, ay, az;       // acceleration, g
-    float gx, gy, gz;       // angular velocity, deg/s
-} imu_data_t;
-
-// LSM6DSO on I2C1 (PB7/PB8, set up in CubeMX): 104 Hz, +-4 g, +-2000 deg/s.
-// Returns false if the chip does not answer with its WHO_AM_I id.
-bool imu_init(I2C_HandleTypeDef * i2c);
-
-// Latest accelerometer and gyro sample, with the same axes as the Arduino
-// library's getAcceleration*() / getAngularVelocity*().
-// Blocking I2C read (~0.4 ms): call it from the main loop, not from the timer callback.
-bool imu_read(imu_data_t * data);
 
 
 #endif

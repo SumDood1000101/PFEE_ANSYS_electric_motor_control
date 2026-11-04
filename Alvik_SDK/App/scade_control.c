@@ -1,15 +1,3 @@
-/*
-    Wheel speed control by the SCADE One model PWM::MotorSystem.
-
-    The model (Scade/MotorSystem_PWM.c, generated, not edited) is a PI speed
-    controller followed by a 100-step software PWM. On every SDK timer tick,
-    each wheel runs one step of it:
-
-        measured rpm (SDK) --> MotorSystem_PWM() --> motor on/off (SDK)
-
-    so the PWM frequency is ALVIK_TICK_HZ / 100 = 100 Hz.
-*/
-
 #include "scade_control.h"
 #include "robot_definitions.h"
 

@@ -24,7 +24,6 @@
 #include <stdio.h>
 #include <string.h>
 #include "alvik.h"
-#include "scade_control.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -34,8 +33,6 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define TEST_RPM            30.0f   // wheel speed setpoint for the bring-up test
-#define START_DELAY_MS      2000u   // time to put the robot down/lift it before the wheels turn
 #define TELEMETRY_MS        100u
 #define BLINK_MS            250u
 /* USER CODE END PD */
@@ -77,42 +74,15 @@ static void rpm_str(char * buf, size_t len, float rpm){
 
 /* One line per call over USART1, read on the PC through the ESP32 bridge */
 static void send_telemetry(void){
-  char lt[12], lm[12], rt[12], rm[12], line[80];
-  rpm_str(lt, sizeof(lt), scade_control_get_target(MOTOR_LEFT));
-  rpm_str(lm, sizeof(lm), motor_get_rpm(MOTOR_LEFT));
-  rpm_str(rt, sizeof(rt), scade_control_get_target(MOTOR_RIGHT));
-  rpm_str(rm, sizeof(rm), motor_get_rpm(MOTOR_RIGHT));
-  int n = snprintf(line, sizeof(line), "L target %s enc %s  |  R target %s enc %s rpm\r\n", lt, lm, rt, rm);
+  char l[12], r[12], line[48];
+  rpm_str(l, sizeof(l), motor_get_rpm(MOTOR_LEFT));
+  rpm_str(r, sizeof(r), motor_get_rpm(MOTOR_RIGHT));
+  int n = snprintf(line, sizeof(line), "L %s  |  R %s rpm\r\n", l, r);
   HAL_UART_Transmit(&huart1, (uint8_t *)line, (uint16_t)n, 10);
 }
 
 static void send_text(const char * s){
   HAL_UART_Transmit(&huart1, (const uint8_t *)s, (uint16_t)strlen(s), 10);
-}
-
-/* Same as rpm_str, with two decimals */
-static void g_str(char * buf, size_t len, float g){
-  int t = (int)(g * 100.0f);
-  int a = (t < 0) ? -t : t;
-  snprintf(buf, len, "%s%d.%02d", (t < 0) ? "-" : "", a / 100, a % 100);
-}
-
-/* Accelerometer (g) and gyro (deg/s) on one line */
-static void send_imu(void){
-  imu_data_t d;
-  if (!imu_read(&d)){
-    send_text("imu read failed\r\n");
-    return;
-  }
-  char ax[12], ay[12], az[12], gx[12], gy[12], gz[12], line[96];
-  g_str(ax, sizeof(ax), d.ax);
-  g_str(ay, sizeof(ay), d.ay);
-  g_str(az, sizeof(az), d.az);
-  rpm_str(gx, sizeof(gx), d.gx);
-  rpm_str(gy, sizeof(gy), d.gy);
-  rpm_str(gz, sizeof(gz), d.gz);
-  int n = snprintf(line, sizeof(line), "acc %s %s %s g  |  gyro %s %s %s dps\r\n", ax, ay, az, gx, gy, gz);
-  HAL_UART_Transmit(&huart1, (uint8_t *)line, (uint16_t)n, 10);
 }
 /* USER CODE END 0 */
 
@@ -160,17 +130,10 @@ int main(void)
   led.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &led);
 
-  send_text("\r\nAlvik_SDK motor test: wheels start in 2 s\r\n");
-  bool imu_ok = imu_init(&hi2c1);
-  send_text(imu_ok ? "IMU ok\r\n" : "IMU not found\r\n");
-  HAL_Delay(START_DELAY_MS);
+  send_text("\r\nAlvik_SDK\r\n");
 
   alvik_init(&htim10);                  // motors off, encoders running, 10 kHz tick on TIM10
-
-  scade_control_init();                 // SCADE model state for both wheels
-  scade_control_set_rpm(MOTOR_LEFT, TEST_RPM);
-  scade_control_set_rpm(MOTOR_RIGHT, TEST_RPM);
-  timer_start(scade_control_step);      // run the SCADE model on every tick
+  // timer_start(my_step);              // call my_step() on every tick; it can use motor_get_rpm() and motor_set()
 
   uint32_t last_blink = HAL_GetTick();
   uint32_t last_telemetry = last_blink;
@@ -191,9 +154,6 @@ int main(void)
     if (now - last_telemetry >= TELEMETRY_MS){
       last_telemetry = now;
       send_telemetry();
-      if (imu_ok){
-        send_imu();
-      }
     }
   }
   /* USER CODE END 3 */
