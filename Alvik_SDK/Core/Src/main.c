@@ -65,6 +65,7 @@ static void MX_I2C1_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+//test function
 /* newlib-nano's printf has no %f: print one decimal from tenths */
 static void rpm_str(char * buf, size_t len, float rpm){
   int t = (int)(rpm * 10.0f);
@@ -148,10 +149,12 @@ int main(void)
     /* USER CODE BEGIN 3 */
     uint32_t now = HAL_GetTick();
     if (now - last_blink >= BLINK_MS){
+      //blinking as sanity check
       last_blink = now;
       HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_8);
     }
     if (now - last_telemetry >= TELEMETRY_MS){
+      //monitor power sent to motors
       last_telemetry = now;
       send_telemetry();
     }
