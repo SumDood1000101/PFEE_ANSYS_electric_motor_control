@@ -1,0 +1,16 @@
+{
+  "files": [
+    "..\\..\\assets\\FOC.swan",
+    "..\\..\\assets\\PWM.swan",
+    "..\\..\\assets\\Utils.swan"
+  ],
+  "roots": [
+    "PWM::MotorSystem"
+  ],
+  "target_dir": "out",
+  "target": "C",
+  "keep_assertions": false,
+  "metadata": {
+    "date": "2026-11-13T07:11:35.0619328Z"
+  }
+}

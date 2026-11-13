@@ -1,0 +1,9 @@
+<JobStatus:Completed>11/13/2026 8:11:36 AM
+<JobCommandLine>"C:\Program Files\Ansys Inc\v261\Scade One Student\Scade One\tools\swan_cg.exe" config.json -student
+<JobWorkingDirectory>C:\Users\Hugo's PC\Documents\epita\PFEE\PWM\MotorPWM-v2\MotorPWM\MotorPWM\jobs\codegen_1a3a6da
+Ansys Scade One - Swan Code Generator - Version 2.4.0 - Build 0955
+Copyright © 2026 Synopsys, Inc. and ANSYS, Inc. All rights reserved.
+
+No warning was found
+No error was found
+No failure occurred

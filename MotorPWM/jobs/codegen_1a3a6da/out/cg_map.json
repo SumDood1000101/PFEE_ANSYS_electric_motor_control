@@ -1,0 +1,488 @@
+{
+  "version" : "0.1",
+  "model" : [
+    [ "predefined_type", { "id" : 8, "name" : "bool" } ],
+    [ "predefined_type", { "id" : 9, "name" : "char" } ],
+    [ "predefined_type", { "id" : 10, "name" : "int8" } ],
+    [ "predefined_type", { "id" : 11, "name" : "int16" } ],
+    [ "predefined_type", { "id" : 12, "name" : "int32" } ],
+    [ "predefined_type", { "id" : 13, "name" : "int64" } ],
+    [ "predefined_type", { "id" : 14, "name" : "uint8" } ],
+    [ "predefined_type", { "id" : 15, "name" : "uint16" } ],
+    [ "predefined_type", { "id" : 16, "name" : "uint32" } ],
+    [ "predefined_type", { "id" : 17, "name" : "uint64" } ],
+    [ "predefined_type", { "id" : 18, "name" : "float32" } ],
+    [ "predefined_type", { "id" : 19, "name" : "float64" } ],
+    [
+      "operator",
+      {
+        "id" : 31,
+        "path" : "PWM::MotorSystem",
+        "inputs" : [
+          { "id" : 445, "name" : "ref_speed" },
+          { "id" : 446, "name" : "curr_speed" }
+        ],
+        "outputs" : [ { "id" : 447, "name" : "pwm_out" } ],
+        "root" : true,
+        "instances" : [
+          [ "operator", { "id" : 469, "path" : "#0:", "operator" : 33 } ],
+          [ "operator", { "id" : 467, "path" : "#1:", "operator" : 32 } ]
+        ]
+      }
+    ],
+    [
+      "operator",
+      {
+        "id" : 33,
+        "path" : "PWM::PIController",
+        "inputs" : [
+          { "id" : 524, "name" : "ref" },
+          { "id" : 525, "name" : "measured" },
+          { "id" : 526, "name" : "kp" },
+          { "id" : 527, "name" : "ki" },
+          { "id" : 528, "name" : "out_min" },
+          { "id" : 529, "name" : "out_max" }
+        ],
+        "outputs" : [ { "id" : 530, "name" : "out" } ],
+        "instances" : [
+          [ "operator", { "id" : 571, "path" : "#13:", "operator" : 36 } ],
+          [ "operator", { "id" : 558, "path" : "#22:", "operator" : 35 } ],
+          [ "operator", { "id" : 551, "path" : "#20:", "operator" : 41 } ]
+        ]
+      }
+    ],
+    [
+      "operator",
+      {
+        "id" : 36,
+        "path" : "PWM::Integral",
+        "inputs" : [
+          { "id" : 700, "name" : "epsilon" },
+          { "id" : 701, "name" : "windup" }
+        ],
+        "outputs" : [ { "id" : 702, "name" : "integral" } ]
+      }
+    ],
+    [ "const", { "id" : 38, "path" : "PWM::T_CYCLE", "type" : 18 } ],
+    [
+      "operator",
+      {
+        "id" : 35,
+        "path" : "PWM::SaturationCheck",
+        "inputs" : [
+          { "id" : 652, "name" : "out" },
+          { "id" : 653, "name" : "out_clamped" },
+          { "id" : 654, "name" : "epsilon" },
+          { "id" : 655, "name" : "max" },
+          { "id" : 656, "name" : "min" }
+        ],
+        "outputs" : [ { "id" : 657, "name" : "isSat" } ]
+      }
+    ],
+    [
+      "operator",
+      {
+        "id" : 41,
+        "path" : "Utils::Clamp",
+        "inputs" : [
+          { "id" : 709, "name" : "val" },
+          { "id" : 710, "name" : "max" },
+          { "id" : 711, "name" : "min" }
+        ],
+        "outputs" : [ { "id" : 712, "name" : "out" } ]
+      }
+    ],
+    [
+      "operator",
+      {
+        "id" : 32,
+        "path" : "PWM::PWMGenerator",
+        "inputs" : [
+          { "id" : 470, "name" : "period" },
+          { "id" : 471, "name" : "duty_cycle" }
+        ],
+        "outputs" : [ { "id" : 472, "name" : "pwm_out" } ]
+      }
+    ],
+    [ "const", { "id" : 39, "path" : "PWM::M_PERIOD", "type" : 12 } ],
+    [ "elaboration", { "id" : 0 } ]
+  ],
+  "code" : [
+    {
+      "interface_file" : "MotorSystem_PWM.h",
+      "implementation_file" : "MotorSystem_PWM.c",
+      "declarations" : [
+        [ "macro", { "id" : 3410, "name" : "SWAN_MotorSystem_PWM_H_" } ],
+        [
+          "struct",
+          {
+            "id" : 3401,
+            "name" : "outC_MotorSystem_PWM",
+            "fields" : [
+              { "id" : 3402, "name" : "Ctx_PWMGenerator1", "type" : 3369 },
+              { "id" : 3403, "name" : "Ctx_PIController1", "type" : 3391 }
+            ]
+          }
+        ],
+        [
+          "function",
+          {
+            "id" : 31,
+            "name" : "MotorSystem_PWM",
+            "parameters" : [
+              { "id" : 445, "name" : "ref_speed", "type" : 3307 },
+              { "id" : 446, "name" : "curr_speed", "type" : 3307 },
+              { "id" : 447, "name" : "pwm_out", "type" : 3344, "pointer" : true },
+              { "id" : 3405, "name" : "outC", "type" : 3401, "pointer" : true }
+            ]
+          }
+        ],
+        [
+          "function",
+          {
+            "id" : 3406,
+            "name" : "MotorSystem_reset_PWM",
+            "parameters" : [
+              { "id" : 3407, "name" : "outC", "type" : 3401, "pointer" : true }
+            ]
+          }
+        ],
+        [
+          "function",
+          {
+            "id" : 3408,
+            "name" : "MotorSystem_init_PWM",
+            "parameters" : [
+              { "id" : 3409, "name" : "outC", "type" : 3401, "pointer" : true }
+            ]
+          }
+        ]
+      ]
+    },
+    {
+      "interface_file" : "PIController_PWM.h",
+      "implementation_file" : "PIController_PWM.c",
+      "declarations" : [
+        [ "macro", { "id" : 3399, "name" : "SWAN_PIController_PWM_H_" } ],
+        [
+          "struct",
+          {
+            "id" : 3391,
+            "name" : "outC_PIController_PWM",
+            "fields" : [
+              { "id" : 3294, "name" : "mem1", "type" : 3344 },
+              { "id" : 3392, "name" : "Ctx_Integral1", "type" : 3382 }
+            ]
+          }
+        ],
+        [
+          "function",
+          {
+            "id" : 33,
+            "name" : "PIController_PWM",
+            "parameters" : [
+              { "id" : 524, "name" : "ref", "type" : 3307 },
+              { "id" : 525, "name" : "measured", "type" : 3307 },
+              { "id" : 526, "name" : "kp", "type" : 3307 },
+              { "id" : 527, "name" : "ki", "type" : 3307 },
+              { "id" : 528, "name" : "out_min", "type" : 3307 },
+              { "id" : 529, "name" : "out_max", "type" : 3307 },
+              { "id" : 530, "name" : "out", "type" : 3307, "pointer" : true },
+              { "id" : 3394, "name" : "outC", "type" : 3391, "pointer" : true }
+            ]
+          }
+        ],
+        [
+          "function",
+          {
+            "id" : 3395,
+            "name" : "PIController_reset_PWM",
+            "parameters" : [
+              { "id" : 3396, "name" : "outC", "type" : 3391, "pointer" : true }
+            ]
+          }
+        ],
+        [
+          "function",
+          {
+            "id" : 3397,
+            "name" : "PIController_init_PWM",
+            "parameters" : [
+              { "id" : 3398, "name" : "outC", "type" : 3391, "pointer" : true }
+            ]
+          }
+        ]
+      ]
+    },
+    {
+      "interface_file" : "Integral_PWM.h",
+      "implementation_file" : "Integral_PWM.c",
+      "declarations" : [
+        [ "macro", { "id" : 3389, "name" : "SWAN_Integral_PWM_H_" } ],
+        [
+          "struct",
+          {
+            "id" : 3382,
+            "name" : "outC_Integral_PWM",
+            "fields" : [ { "id" : 702, "name" : "integral", "type" : 3307 } ]
+          }
+        ],
+        [
+          "function",
+          {
+            "id" : 36,
+            "name" : "Integral_PWM",
+            "parameters" : [
+              { "id" : 700, "name" : "epsilon", "type" : 3307 },
+              { "id" : 701, "name" : "windup", "type" : 3344 },
+              { "id" : 3384, "name" : "outC", "type" : 3382, "pointer" : true }
+            ]
+          }
+        ],
+        [
+          "function",
+          {
+            "id" : 3385,
+            "name" : "Integral_reset_PWM",
+            "parameters" : [
+              { "id" : 3386, "name" : "outC", "type" : 3382, "pointer" : true }
+            ]
+          }
+        ],
+        [
+          "function",
+          {
+            "id" : 3387,
+            "name" : "Integral_init_PWM",
+            "parameters" : [
+              { "id" : 3388, "name" : "outC", "type" : 3382, "pointer" : true }
+            ]
+          }
+        ]
+      ]
+    },
+    {
+      "interface_file" : "SaturationCheck_PWM.h",
+      "implementation_file" : "SaturationCheck_PWM.c",
+      "declarations" : [
+        [ "macro", { "id" : 3380, "name" : "SWAN_SaturationCheck_PWM_H_" } ],
+        [
+          "function",
+          {
+            "id" : 35,
+            "name" : "SaturationCheck_PWM",
+            "return_type" : 3344,
+            "parameters" : [
+              { "id" : 652, "name" : "out", "type" : 3307 },
+              { "id" : 653, "name" : "out_clamped", "type" : 3307 },
+              { "id" : 654, "name" : "epsilon", "type" : 3307 },
+              { "id" : 655, "name" : "max", "type" : 3307 },
+              { "id" : 656, "name" : "min", "type" : 3307 }
+            ]
+          }
+        ]
+      ]
+    },
+    {
+      "interface_file" : "Clamp_Utils.h",
+      "implementation_file" : "Clamp_Utils.c",
+      "declarations" : [
+        [ "macro", { "id" : 3378, "name" : "SWAN_Clamp_Utils_H_" } ],
+        [
+          "function",
+          {
+            "id" : 41,
+            "name" : "Clamp_Utils",
+            "return_type" : 3307,
+            "parameters" : [
+              { "id" : 709, "name" : "val", "type" : 3307 },
+              { "id" : 710, "name" : "max", "type" : 3307 },
+              { "id" : 711, "name" : "min", "type" : 3307 }
+            ]
+          }
+        ]
+      ]
+    },
+    {
+      "interface_file" : "PWMGenerator_PWM.h",
+      "implementation_file" : "PWMGenerator_PWM.c",
+      "declarations" : [
+        [ "macro", { "id" : 3376, "name" : "SWAN_PWMGenerator_PWM_H_" } ],
+        [
+          "struct",
+          {
+            "id" : 3369,
+            "name" : "outC_PWMGenerator_PWM",
+            "fields" : [ { "id" : 3293, "name" : "mem1", "type" : 3300 } ]
+          }
+        ],
+        [
+          "function",
+          {
+            "id" : 32,
+            "name" : "PWMGenerator_PWM",
+            "parameters" : [
+              { "id" : 470, "name" : "period", "type" : 3300 },
+              { "id" : 471, "name" : "duty_cycle", "type" : 3307 },
+              { "id" : 472, "name" : "pwm_out", "type" : 3344, "pointer" : true },
+              { "id" : 3371, "name" : "outC", "type" : 3369, "pointer" : true }
+            ]
+          }
+        ],
+        [
+          "function",
+          {
+            "id" : 3372,
+            "name" : "PWMGenerator_reset_PWM",
+            "parameters" : [
+              { "id" : 3373, "name" : "outC", "type" : 3369, "pointer" : true }
+            ]
+          }
+        ],
+        [
+          "function",
+          {
+            "id" : 3374,
+            "name" : "PWMGenerator_init_PWM",
+            "parameters" : [
+              { "id" : 3375, "name" : "outC", "type" : 3369, "pointer" : true }
+            ]
+          }
+        ]
+      ]
+    },
+    {
+      "interface_file" : "swan_types.h",
+      "implementation_file" : "swan_types.c",
+      "declarations" : [ [ "macro", { "id" : 3315, "name" : "SWAN_TYPES_H_" } ] ]
+    },
+    {
+      "interface_file" : "swan_consts.h",
+      "implementation_file" : "swan_consts.c",
+      "declarations" : [
+        [ "macro", { "id" : 3314, "name" : "SWAN_CONSTS_H_" } ],
+        [ "macro", { "id" : 38, "name" : "T_CYCLE_PWM" } ]
+      ]
+    },
+    {
+      "interface_file" : "swan_sensors.h",
+      "declarations" : [ [ "macro", { "id" : 3313, "name" : "SWAN_SENSORS_H_" } ] ]
+    },
+    {
+      "interface_file" : "swan_config.h",
+      "user_provided" : true,
+      "declarations" : [
+        [ "predefined_type", { "id" : 3298, "name" : "swan_int8" } ],
+        [ "predefined_type", { "id" : 3299, "name" : "swan_int16" } ],
+        [ "predefined_type", { "id" : 3300, "name" : "swan_int32" } ],
+        [ "predefined_type", { "id" : 3301, "name" : "swan_int64" } ],
+        [ "predefined_type", { "id" : 3302, "name" : "swan_uint8" } ],
+        [ "predefined_type", { "id" : 3303, "name" : "swan_uint16" } ],
+        [ "predefined_type", { "id" : 3304, "name" : "swan_uint32" } ],
+        [ "predefined_type", { "id" : 3305, "name" : "swan_uint64" } ],
+        [ "predefined_type", { "id" : 3306, "name" : "swan_size" } ],
+        [ "predefined_type", { "id" : 3307, "name" : "swan_float32" } ],
+        [ "predefined_type", { "id" : 3308, "name" : "swan_float64" } ],
+        [ "macro", { "id" : 3324, "name" : "swan_incr" } ],
+        [ "macro", { "id" : 3325, "name" : "swan_cond" } ],
+        [ "macro", { "id" : 3326, "name" : "swan_not" } ],
+        [ "macro", { "id" : 3327, "name" : "swan_xor" } ],
+        [ "macro", { "id" : 3328, "name" : "swan_or" } ],
+        [ "macro", { "id" : 3329, "name" : "swan_and" } ],
+        [ "macro", { "id" : 3330, "name" : "swan_index" } ],
+        [ "macro", { "id" : 3331, "name" : "swan_diff" } ],
+        [ "macro", { "id" : 3332, "name" : "swan_eq" } ],
+        [ "macro", { "id" : 3333, "name" : "swan_assign_union" } ],
+        [ "macro", { "id" : 3334, "name" : "swan_assign_array" } ],
+        [ "macro", { "id" : 3335, "name" : "swan_assign_struct" } ],
+        [ "macro", { "id" : 3336, "name" : "swan_assign" } ],
+        [ "macro", { "id" : 3339, "name" : "swan_guarantee" } ],
+        [ "macro", { "id" : 3340, "name" : "swan_assume" } ],
+        [ "macro", { "id" : 3341, "name" : "swan_assert" } ],
+        [ "macro", { "id" : 3342, "name" : "swan_false" } ],
+        [ "macro", { "id" : 3343, "name" : "swan_true" } ],
+        [ "predefined_type", { "id" : 3344, "name" : "swan_bool" } ],
+        [ "predefined_type", { "id" : 3345, "name" : "swan_char" } ],
+        [ "macro", { "id" : 3346, "name" : "swan_lit_int8" } ],
+        [ "macro", { "id" : 3347, "name" : "swan_lit_int16" } ],
+        [ "macro", { "id" : 3348, "name" : "swan_lit_int32" } ],
+        [ "macro", { "id" : 3349, "name" : "swan_lit_int64" } ],
+        [ "macro", { "id" : 3350, "name" : "swan_lsl_uint8" } ],
+        [ "macro", { "id" : 3351, "name" : "swan_lnot_uint8" } ],
+        [ "macro", { "id" : 3352, "name" : "swan_lit_uint8" } ],
+        [ "macro", { "id" : 3353, "name" : "swan_lsl_uint16" } ],
+        [ "macro", { "id" : 3354, "name" : "swan_lnot_uint16" } ],
+        [ "macro", { "id" : 3355, "name" : "swan_lit_uint16" } ],
+        [ "macro", { "id" : 3356, "name" : "swan_lsl_uint32" } ],
+        [ "macro", { "id" : 3357, "name" : "swan_lnot_uint32" } ],
+        [ "macro", { "id" : 3358, "name" : "swan_lit_uint32" } ],
+        [ "macro", { "id" : 3359, "name" : "swan_lsl_uint64" } ],
+        [ "macro", { "id" : 3360, "name" : "swan_lnot_uint64" } ],
+        [ "macro", { "id" : 3361, "name" : "swan_lit_uint64" } ],
+        [ "macro", { "id" : 3362, "name" : "swan_lit_size" } ],
+        [ "macro", { "id" : 3363, "name" : "swan_lit_float32" } ],
+        [ "macro", { "id" : 3364, "name" : "swan_lit_float64" } ],
+        [ "macro", { "id" : 3365, "name" : "swan_diff_char" } ],
+        [ "macro", { "id" : 3366, "name" : "swan_eq_char" } ],
+        [ "macro", { "id" : 3367, "name" : "swan_lit_char" } ]
+      ]
+    }
+  ],
+  "mapping" : [
+    { "model_id" : 8, "code_id" : 3344 },
+    { "model_id" : 9, "code_id" : 3345 },
+    { "model_id" : 10, "code_id" : 3298 },
+    { "model_id" : 11, "code_id" : 3299 },
+    { "model_id" : 12, "code_id" : 3300 },
+    { "model_id" : 13, "code_id" : 3301 },
+    { "model_id" : 14, "code_id" : 3302 },
+    { "model_id" : 15, "code_id" : 3303 },
+    { "model_id" : 16, "code_id" : 3304 },
+    { "model_id" : 17, "code_id" : 3305 },
+    { "model_id" : 18, "code_id" : 3307 },
+    { "model_id" : 19, "code_id" : 3308 },
+    { "model_id" : 31, "code_id" : 31, "role" : "CycleMethod" },
+    { "model_id" : 31, "code_id" : 3401, "role" : "ContextType" },
+    { "model_id" : 31, "code_id" : 3406, "role" : "ResetMethod" },
+    { "model_id" : 31, "code_id" : 3408, "role" : "InitMethod" },
+    { "model_id" : 32, "code_id" : 32, "role" : "CycleMethod" },
+    { "model_id" : 32, "code_id" : 3369, "role" : "ContextType" },
+    { "model_id" : 32, "code_id" : 3372, "role" : "ResetMethod" },
+    { "model_id" : 32, "code_id" : 3374, "role" : "InitMethod" },
+    { "model_id" : 33, "code_id" : 33, "role" : "CycleMethod" },
+    { "model_id" : 33, "code_id" : 3391, "role" : "ContextType" },
+    { "model_id" : 33, "code_id" : 3395, "role" : "ResetMethod" },
+    { "model_id" : 33, "code_id" : 3397, "role" : "InitMethod" },
+    { "model_id" : 35, "code_id" : 35, "role" : "CycleMethod" },
+    { "model_id" : 36, "code_id" : 36, "role" : "CycleMethod" },
+    { "model_id" : 36, "code_id" : 3382, "role" : "ContextType" },
+    { "model_id" : 36, "code_id" : 3385, "role" : "ResetMethod" },
+    { "model_id" : 36, "code_id" : 3387, "role" : "InitMethod" },
+    { "model_id" : 38, "code_id" : 38 },
+    { "model_id" : 41, "code_id" : 41, "role" : "CycleMethod" },
+    { "model_id" : 445, "code_id" : 445 },
+    { "model_id" : 446, "code_id" : 446 },
+    { "model_id" : 447, "code_id" : 447 },
+    { "model_id" : 470, "code_id" : 470 },
+    { "model_id" : 471, "code_id" : 471 },
+    { "model_id" : 472, "code_id" : 472 },
+    { "model_id" : 524, "code_id" : 524 },
+    { "model_id" : 525, "code_id" : 525 },
+    { "model_id" : 526, "code_id" : 526 },
+    { "model_id" : 527, "code_id" : 527 },
+    { "model_id" : 528, "code_id" : 528 },
+    { "model_id" : 529, "code_id" : 529 },
+    { "model_id" : 530, "code_id" : 530 },
+    { "model_id" : 652, "code_id" : 652 },
+    { "model_id" : 653, "code_id" : 653 },
+    { "model_id" : 654, "code_id" : 654 },
+    { "model_id" : 655, "code_id" : 655 },
+    { "model_id" : 656, "code_id" : 656 },
+    { "model_id" : 700, "code_id" : 700 },
+    { "model_id" : 701, "code_id" : 701 },
+    { "model_id" : 702, "code_id" : 702 },
+    { "model_id" : 709, "code_id" : 709 },
+    { "model_id" : 710, "code_id" : 710 },
+    { "model_id" : 711, "code_id" : 711 }
+  ]
+}
