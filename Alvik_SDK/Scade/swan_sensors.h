@@ -6,16 +6,6 @@
 
 #include "swan_types.h"
 
-#ifndef kp_PWM
-/* PWM::kp */
-extern swan_float32 kp_PWM;
-#endif /* kp_PWM */
-
-#ifndef ki_PWM
-/* PWM::ki */
-extern swan_float32 ki_PWM;
-#endif /* ki_PWM */
-
 #endif /* SWAN_SENSORS_H_ */
 /* $ Ansys Scade One - Swan Code Generator - Version 2.4.0 - Build 0955 
 ** swan_sensors.h
