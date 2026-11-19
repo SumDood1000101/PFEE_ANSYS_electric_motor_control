@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "alvik.h"
+#include "MotorSystem_PWM.h"   // Scade One generated speed controller
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -35,6 +36,7 @@
 /* USER CODE BEGIN PD */
 #define TELEMETRY_MS        100u
 #define BLINK_MS            250u
+#define TARGET_RPM          60.0f    // speed asked of both wheels
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -50,6 +52,9 @@ TIM_HandleTypeDef htim10;
 UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN PV */
+/* Scade model state (PI integrator + PWM counter), one per wheel */
+static outC_MotorSystem_PWM motor_ctrl[MOTOR_COUNT];
+static volatile float target_rpm[MOTOR_COUNT] = { TARGET_RPM, TARGET_RPM };
 
 /* USER CODE END PV */
 
@@ -80,6 +85,15 @@ static void send_telemetry(void){
   rpm_str(r, sizeof(r), motor_get_rpm(MOTOR_RIGHT));
   int n = snprintf(line, sizeof(line), "L %s  |  R %s rpm\r\n", l, r);
   HAL_UART_Transmit(&huart1, (uint8_t *)line, (uint16_t)n, 10);
+}
+
+/* Called at ALVIK_TICK_HZ from the timer interrupt: one model step per wheel */
+static void motor_control_step(void){
+  for (int m = 0; m < MOTOR_COUNT; m++){
+    swan_bool on;
+    MotorSystem_PWM(target_rpm[m], motor_get_rpm((motor_id_t)m), &on, &motor_ctrl[m]);
+    motor_set((motor_id_t)m, on);
+  }
 }
 
 static void send_text(const char * s){
@@ -134,7 +148,11 @@ int main(void)
   send_text("\r\nAlvik_SDK\r\n");
 
   alvik_init(&htim10);                  // motors off, encoders running, 10 kHz tick on TIM10
-  // timer_start(my_step);              // call my_step() on every tick; it can use motor_get_rpm() and motor_set()
+  for (int m = 0; m < MOTOR_COUNT; m++){
+    MotorSystem_init_PWM(&motor_ctrl[m]);
+  }
+  
+  timer_start(motor_control_step);      // run the Scade controller on every tick
 
   uint32_t last_blink = HAL_GetTick();
   uint32_t last_telemetry = last_blink;

@@ -46,6 +46,11 @@ target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     SDK/src/alvik.c
     # Scade One generated code
+    Scade/MotorSystem_PWM.c
+    Scade/PIController_PWM.c
+    Scade/Integral_PWM.c
+    Scade/SaturationCheck_PWM.c
+    Scade/Clamp_Utils.c
     Scade/PWMGenerator_PWM.c
     Scade/swan_consts.c
     Scade/swan_types.c

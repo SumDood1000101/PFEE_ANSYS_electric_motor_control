@@ -26,6 +26,9 @@ typedef double      swan_float64;
 typedef char        swan_char;
 typedef size_t      swan_size;
 
+#define swan_true               ((swan_bool)1)
+#define swan_false              ((swan_bool)0)
+
 #define swan_lit_bool(x)        ((swan_bool)(x))
 #define swan_lit_int8(x)        ((swan_int8)(x))
 #define swan_lit_int16(x)       ((swan_int16)(x))
