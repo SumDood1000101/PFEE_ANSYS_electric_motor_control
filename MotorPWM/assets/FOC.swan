@@ -1,0 +1,655 @@
+-- version swan: 2025.2 graph: 2.1
+use Utils;
+
+use PWM;
+
+node MotorSystem (id_ref:float32;
+                  iq_ref:float32;
+                  ia:float32;
+                  ib:float32;
+                  ic:float32;
+                  sin_t:float32;
+                  cos_t:float32;
+                  kp:float32;
+                  ki:float32;
+                  vmax:float32;
+                  vdc:float32;)
+  returns (pwm_a:bool;
+           pwm_b:bool;
+           pwm_c:bool;)
+{
+  diagram
+    (#0 expr ia
+    #pragma diagram {"xy":"H-131400;V-60600"} #end)
+    (#1 block Clarke
+    #pragma diagram {"xy":"H-102500;V-55200","wh":"20000;14000"} #end)
+    (#2 expr ib
+    #pragma diagram {"xy":"H-131400;V-55200"} #end)
+    (#3 expr ic
+    #pragma diagram {"xy":"H-131400;V-49800"} #end)
+    (#4 block Park
+    #pragma diagram {"xy":"H-57300;V-55200","wh":"20000;14000"} #end)
+    (#5 expr sin_t
+    #pragma diagram {"xy":"H-87200;V-72050","wh":"10000;3200"} #end)
+    (#6 expr cos_t
+    #pragma diagram {"xy":"H-87200;V-66450","wh":"10000;3200"} #end)
+    (#7 block PWM::PIController
+    #pragma diagram {"xy":"H26400;V-70050","wh":"20000;14000"} #end)
+    (#8 block PWM::PIController
+    #pragma diagram {"xy":"H26400;V-40350","wh":"20000;14000"} #end)
+    (#9 expr kp
+    #pragma diagram {"xy":"H-35000;V-81250"} #end)
+    (#10 expr ki
+    #pragma diagram {"xy":"H-35000;V-75450"} #end)
+    (#11 expr - #12
+      where
+        (#12 group)
+    #pragma diagram {"xy":"H-35000;V-87050"} #end)
+    (#13 expr id_ref
+    #pragma diagram {"xy":"H-7350;V-68175","wh":"10000;3200"} #end)
+    (#14 expr vmax
+    #pragma diagram {"xy":"H-35000;V-92850"} #end)
+    (#15 expr iq_ref
+    #pragma diagram {"xy":"H-7350;V-49800","wh":"10000;3200"} #end)
+    (#16 block InvPark
+    #pragma diagram {"xy":"H81950;V-55200","wh":"20000;14000"} #end)
+    (#17 expr sin_t
+    #pragma diagram {"xy":"H55550;V-73775","wh":"10000;3200"} #end)
+    (#18 expr cos_t
+    #pragma diagram {"xy":"H55550;V-68675","wh":"10000;3200"} #end)
+    (#19 block InvClarke
+    #pragma diagram {"xy":"H115525;V-55200","wh":"20000;14000"} #end)
+    (#20 block SVPWMGenerator
+    #pragma diagram {"xy":"H153050;V-55200","wh":"20000;14000"} #end)
+    (#21 expr vdc
+    #pragma diagram {"xy":"H132312;V-45050"} #end)
+    (#22 block PWM::PWMGenerator
+    #pragma diagram {"xy":"H208106;V-73388","wh":"20000;14000"} #end)
+    (#23 block PWM::PWMGenerator
+    #pragma diagram {"xy":"H208106;V-55200","wh":"20000;14000"} #end)
+    (#24 block PWM::PWMGenerator
+    #pragma diagram {"xy":"H208106;V-37012","wh":"20000;14000"} #end)
+    (#25 expr M_PERIOD
+    #pragma diagram {"xy":"H157050;V-73388","wh":"12000;3200"} #end)
+    (#26 def pwm_a
+    #pragma diagram {"xy":"H235400;V-73388","wh":"10000;3200"} #end)
+    (#27 def pwm_b
+    #pragma diagram {"xy":"H235400;V-55200","wh":"10000;3200"} #end)
+    (#28 def pwm_c
+    #pragma diagram {"xy":"H235400;V-37012","wh":"10000;3200"} #end)
+    
+    (#29 wire #0 => #1 .(ia))
+    (#30 wire #2 => #1 .(ib))
+    (#31 wire #1 .(ialpha) => #4 .(ialpha)
+    #pragma diagram {"wp":"v4500|#1 #4"} #end)
+    (#32 wire #1 .(ibeta) => #4 .(ibeta)
+    #pragma diagram {"wp":"v1500|#1 #4"} #end)
+    (#33 wire #6 => #4 .(cos_t)
+    #pragma diagram {"wp":"#6 h6225 v9750 #4"} #end)
+    (#34 wire #5 => #4 .(sin_t)
+    #pragma diagram {"wp":"#5 h11675 v12350 #4"} #end)
+    (#35 wire #4 .(id) => #7 .(measured)
+    #pragma diagram {"wp":"v-4850|#4 h58617 v-5375 #7"} #end)
+    (#36 wire #4 .(iq) => #8 .(measured)
+    #pragma diagram {"wp":"v2383|#4 h20711 v17467 #8"} #end)
+    (#37 wire #9 => #7 .(kp), #8 .(kp)
+    #pragma diagram {"wp":"#9 h15556[h9761 v10475 #7, v41900 #8]"} #end)
+    (#38 wire #10 => #7 .(ki), #8 .(ki)
+    #pragma diagram {"wp":"#10 h10733[#7, v38100 #8]"} #end)
+    (#39 wire #11 => #7 .(out_min), #8 .(out_min)
+    #pragma diagram {"wp":"#11 h18150[h13333 v14847 #7, v45700 #8]"} #end)
+    (#40 wire #14 => #12, #7 .(out_max), #8 .(out_max)
+    #pragma diagram {"wp":"#14 h3500[v2900 h-12000 v2900 #12, h15650[h18500 v19219 #7, v49500 #8]]"} #end)
+    (#41 wire #15 => #8 .(ref)
+    #pragma diagram {"wp":"#15 h10875 v4450 #8"} #end)
+    (#42 wire #13 => #7 .(ref))
+    (#43 wire #7 .(out) => #16 .(vd)
+    #pragma diagram {"wp":"v0|#7 h6830 v16350 #16"} #end)
+    (#44 wire #8 .(out) => #16 .(vq)
+    #pragma diagram {"wp":"v0|#8 h16490 v-10350 #16"} #end)
+    (#45 wire #18 => #16 .(cos_t)
+    #pragma diagram {"wp":"#18 h3500 v11975 #16"} #end)
+    (#46 wire #17 => #16 .(sin_t)
+    #pragma diagram {"wp":"#17 h8433 v14075 #16"} #end)
+    (#47 wire #16 .(valpha) => #19 .(valpha)
+    #pragma diagram {"wp":"v3000|#16 #19"} #end)
+    (#48 wire #16 .(vbeta) => #19 .(vbeta)
+    #pragma diagram {"wp":"v-3000|#16 #19"} #end)
+    (#49 wire #19 .(va) => #20 .(va)
+    #pragma diagram {"wp":"v-4500|#19 #20"} #end)
+    (#50 wire #19 .(vb) => #20 .(vb)
+    #pragma diagram {"wp":"v-1500|#19 #20"} #end)
+    (#51 wire #19 .(vc) => #20 .(vc)
+    #pragma diagram {"wp":"v1500|#19 #20"} #end)
+    (#52 wire #21 => #20 .(vdc)
+    #pragma diagram {"wp":"#21 h4869 v-5650 #20"} #end)
+    (#53 wire #25 => #22 .(period), #23 .(period), #24 .(period)
+    #pragma diagram {"wp":"#25 h22910[h7764[#22, v16688 #23], v33376 #24]"} #end)
+    (#54 wire #20 .(duty_a) => #22 .(duty_cycle)
+    #pragma diagram {"wp":"v-4500|#20 h13646 v-9688 #22"} #end)
+    (#55 wire #20 .(duty_b) => #23 .(duty_cycle)
+    #pragma diagram {"wp":"v1500|#20 #23"} #end)
+    (#56 wire #20 .(duty_c) => #24 .(duty_cycle)
+    #pragma diagram {"wp":"v4500|#20 h5882 v16688 #24"} #end)
+    (#57 wire #22 .(pwm_out) => #26
+    #pragma diagram {"wp":"v-0|#22 #26"} #end)
+    (#58 wire #23 .(pwm_out) => #27
+    #pragma diagram {"wp":"v0|#23 #27"} #end)
+    (#59 wire #24 .(pwm_out) => #28
+    #pragma diagram {"wp":"v0|#24 #28"} #end)
+}
+
+function Clarke (ia: float32;
+                 ib:float32;)
+  returns (ialpha:float32;
+           ibeta:float32;)
+{
+  diagram
+    (#0 expr ia
+    #pragma diagram {"xy":"H-83250;V-27650"} #end)
+    (#1 def ialpha
+    #pragma diagram {"xy":"H24450;V-27650","wh":"10000;3200"} #end)
+    (#2 expr ib
+    #pragma diagram {"xy":"H-83250;V-21650"} #end)
+    (#3 expr #4 * #5
+      where
+        (#4 group)
+        (#5 group)
+    #pragma diagram {"xy":"H-63100;V-19750"} #end)
+    (#6 expr 2.0
+    #pragma diagram {"xy":"H-73675;V-17850"} #end)
+    (#7 expr #8 + #9
+      where
+        (#8 group)
+        (#9 group)
+    #pragma diagram {"xy":"H-41950;V-19750"} #end)
+    (#11 expr #12 * #13
+      where
+        (#12 group)
+        (#13 group)
+    #pragma diagram {"xy":"H-3250;V-19750"} #end)
+    (#14 def ibeta
+    #pragma diagram {"xy":"H24450;V-19750","wh":"10000;3200"} #end)
+    (#10 expr Utils::INV_SQRT3
+    #pragma diagram {"xy":"H-22600;V-13050","wh":"20000;3200"} #end)
+    
+    (#15 wire #0 => #1, #8
+    #pragma diagram {"wp":"#0 h24725[#1, v6000 #8]"} #end)
+    (#16 wire #2 => #4)
+    (#17 wire #6 => #5)
+    (#18 wire #3 => #9
+    #pragma diagram {"wp":"#3 h7075 v1900 #9"} #end)
+    (#19 wire #7 => #12
+    #pragma diagram {"wp":"#7 h15850 v-1900 #12"} #end)
+    (#21 wire #11 => #14)
+    (#20 wire #10 => #13
+    #pragma diagram {"wp":"#10 h3675 v-4800 #13"} #end)
+}
+
+function InvClarke (valpha:float32;
+                    vbeta:float32;)
+  returns (va:float32;
+           vb:float32;
+           vc:float32;)
+{
+  diagram
+    (#0 expr valpha
+    #pragma diagram {"xy":"H-72750;V-16650","wh":"10000;3200"} #end)
+    (#1 def va
+    #pragma diagram {"xy":"H13100;V-16650"} #end)
+    (#2 expr vbeta
+    #pragma diagram {"xy":"H-72750;V10700","wh":"10000;3200"} #end)
+    (#3 expr #4 * #5
+      where
+        (#4 group)
+        (#5 group)
+    #pragma diagram {"xy":"H-57500;V12600"} #end)
+    (#7 expr #8 + #9
+      where
+        (#8 group)
+        (#9 group)
+    #pragma diagram {"xy":"H-30500;V10700"} #end)
+    (#10 expr #11 - #12
+      where
+        (#11 group)
+        (#12 group)
+    #pragma diagram {"xy":"H-30500;V-2300"} #end)
+    (#13 expr #14 * #15
+      where
+        (#14 group)
+        (#15 group)
+    #pragma diagram {"xy":"H-3500;V-2300"} #end)
+    (#16 expr #17 * #18
+      where
+        (#17 group)
+        (#18 group)
+    #pragma diagram {"xy":"H-3500;V10700"} #end)
+    (#19 expr 0.5_f32
+    #pragma diagram {"xy":"H-18200;V4200","wh":"12000;3200"} #end)
+    (#20 def vb
+    #pragma diagram {"xy":"H13100;V10700"} #end)
+    (#21 def vc
+    #pragma diagram {"xy":"H13100;V-2300"} #end)
+    (#22 expr - #23
+      where
+        (#23 group)
+    #pragma diagram {"xy":"H-57500;V-4200"} #end)
+    (#6 expr Utils::SQRT3
+    #pragma diagram {"xy":"H-75750;V14500","wh":"16000;3200"} #end)
+    
+    (#24 wire #0 => #1, #23
+    #pragma diagram {"wp":"#0 h5125[#1, v12450 #23]"} #end)
+    (#26 wire #2 => #4)
+    (#27 wire #3 => #9, #12
+    #pragma diagram {"wp":"#3 h6750[#9, v-13000 #12]"} #end)
+    (#28 wire #22 => #11, #8
+    #pragma diagram {"wp":"#22 h14250[#11, v13000 #8]"} #end)
+    (#29 wire #10 => #14
+    #pragma diagram {"wp":"#10 h10000 v-1900 #14"} #end)
+    (#30 wire #7 => #18
+    #pragma diagram {"wp":"#7 h10000 v1900 #18"} #end)
+    (#31 wire #19 => #15, #17
+    #pragma diagram {"wp":"#19 h3050[v-4600 #15, v4600 #17]"} #end)
+    (#32 wire #13 => #21)
+    (#33 wire #16 => #20)
+    (#25 wire #6 => #5)
+}
+
+function Park (ialpha: float32;
+               ibeta:float32;
+               sin_t:float32;
+               cos_t:float32;)
+  returns (id:float32;
+           iq:float32;)
+{
+  diagram
+    (#0 expr ialpha
+    #pragma diagram {"xy":"H-91950;V-33550","wh":"10000;3200"} #end)
+    (#1 expr ibeta
+    #pragma diagram {"xy":"H-91950;V-23750","wh":"10000;3200"} #end)
+    (#2 expr cos_t
+    #pragma diagram {"xy":"H-91950;V-29750","wh":"10000;3200"} #end)
+    (#3 expr sin_t
+    #pragma diagram {"xy":"H-91950;V-19950","wh":"10000;3200"} #end)
+    (#4 expr ialpha
+    #pragma diagram {"xy":"H-91950;V4200","wh":"10000;3200"} #end)
+    (#5 expr cos_t
+    #pragma diagram {"xy":"H-91950;V-1500","wh":"10000;3200"} #end)
+    (#6 expr sin_t
+    #pragma diagram {"xy":"H-91950;V8000","wh":"10000;3200"} #end)
+    (#7 expr ibeta
+    #pragma diagram {"xy":"H-91950;V-5300","wh":"10000;3200"} #end)
+    (#8 expr #9 * #10
+      where
+        (#9 group)
+        (#10 group)
+    #pragma diagram {"xy":"H-73450;V-31650"} #end)
+    (#11 expr #12 * #13
+      where
+        (#12 group)
+        (#13 group)
+    #pragma diagram {"xy":"H-73450;V-21850"} #end)
+    (#14 expr #15 + #16
+      where
+        (#15 group)
+        (#16 group)
+    #pragma diagram {"xy":"H-54950;V-26650"} #end)
+    (#17 expr #18 * #19
+      where
+        (#18 group)
+        (#19 group)
+    #pragma diagram {"xy":"H-73450;V6100"} #end)
+    (#20 expr #21 * #22
+      where
+        (#21 group)
+        (#22 group)
+    #pragma diagram {"xy":"H-73450;V-3400"} #end)
+    (#23 expr #24 - #25
+      where
+        (#24 group)
+        (#25 group)
+    #pragma diagram {"xy":"H-54950;V950"} #end)
+    (#26 def id
+    #pragma diagram {"xy":"H-33250;V-26650"} #end)
+    (#27 def iq
+    #pragma diagram {"xy":"H-33250;V950"} #end)
+    
+    (#28 wire #0 => #9)
+    (#29 wire #2 => #10)
+    (#30 wire #1 => #12)
+    (#31 wire #3 => #13)
+    (#32 wire #11 => #16
+    #pragma diagram {"wp":"#11 h5750 v-2900 #16"} #end)
+    (#33 wire #8 => #15
+    #pragma diagram {"wp":"#8 h5750 v3100 #15"} #end)
+    (#34 wire #6 => #19)
+    (#35 wire #7 => #21)
+    (#36 wire #5 => #22)
+    (#37 wire #4 => #18)
+    (#38 wire #17 => #25
+    #pragma diagram {"wp":"#17 h5750 v-3250 #25"} #end)
+    (#39 wire #20 => #24
+    #pragma diagram {"wp":"#20 h5750 v2450 #24"} #end)
+    (#40 wire #14 => #26)
+    (#41 wire #23 => #27)
+}
+
+function InvPark (vd:float32;
+                  vq:float32;
+                  sin_t:float32;
+                  cos_t:float32;)
+  returns (valpha:float32;
+           vbeta:float32;)
+{
+  diagram
+    (#0 def valpha
+    #pragma diagram {"xy":"H-18550;V-25550","wh":"10000;3200"} #end)
+    (#1 expr vd
+    #pragma diagram {"xy":"H-82750;V-32050"} #end)
+    (#2 expr vq
+    #pragma diagram {"xy":"H-82750;V-22650"} #end)
+    (#3 expr sin_t
+    #pragma diagram {"xy":"H-83750;V-18850","wh":"10000;3200"} #end)
+    (#4 expr #5 * #6
+      where
+        (#5 group)
+        (#6 group)
+    #pragma diagram {"xy":"H-65850;V-30150"} #end)
+    (#7 expr #8 - #9
+      where
+        (#8 group)
+        (#9 group)
+    #pragma diagram {"xy":"H-34950;V-25550"} #end)
+    (#10 expr cos_t
+    #pragma diagram {"xy":"H-83750;V-28250","wh":"10000;3200"} #end)
+    (#11 expr #12 * #13
+      where
+        (#12 group)
+        (#13 group)
+    #pragma diagram {"xy":"H-65750;V-20750"} #end)
+    (#14 def vbeta
+    #pragma diagram {"xy":"H-18550;V-1850","wh":"10000;3200"} #end)
+    (#15 expr #16 * #17
+      where
+        (#16 group)
+        (#17 group)
+    #pragma diagram {"xy":"H-65650;V2950"} #end)
+    (#18 expr vq
+    #pragma diagram {"xy":"H-82650;V1050"} #end)
+    (#19 expr #20 + #21
+      where
+        (#20 group)
+        (#21 group)
+    #pragma diagram {"xy":"H-34950;V-1850"} #end)
+    (#22 expr vd
+    #pragma diagram {"xy":"H-82650;V-8350"} #end)
+    (#23 expr #24 * #25
+      where
+        (#24 group)
+        (#25 group)
+    #pragma diagram {"xy":"H-65750;V-6450"} #end)
+    (#26 expr sin_t
+    #pragma diagram {"xy":"H-83650;V-4550","wh":"10000;3200"} #end)
+    (#27 expr cos_t
+    #pragma diagram {"xy":"H-83650;V4850","wh":"10000;3200"} #end)
+    
+    (#28 wire #1 => #5)
+    (#29 wire #10 => #6)
+    (#30 wire #2 => #12)
+    (#31 wire #3 => #13)
+    (#32 wire #11 => #9
+    #pragma diagram {"wp":"#11 h11900 v-2900 #9"} #end)
+    (#33 wire #4 => #8
+    #pragma diagram {"wp":"#4 h11950 v2700 #8"} #end)
+    (#34 wire #7 => #0)
+    (#35 wire #19 => #14)
+    (#36 wire #18 => #16)
+    (#37 wire #22 => #24)
+    (#38 wire #23 => #20
+    #pragma diagram {"wp":"#23 h11900 v2700 #20"} #end)
+    (#39 wire #15 => #21
+    #pragma diagram {"wp":"#15 h11850 v-2900 #21"} #end)
+    (#40 wire #26 => #25)
+    (#41 wire #27 => #17)
+}
+
+function ComputeOffset (va:float32;
+                        vb:float32;
+                        vc:float32;)
+  returns (offset:float32;)
+{
+  diagram
+    (#0 expr va
+    #pragma diagram {"xy":"H-134600;V-48900"} #end)
+    (#2 def offset
+    #pragma diagram {"xy":"H-44100;V-34100","wh":"10000;3200"} #end)
+    (#3 expr vb
+    #pragma diagram {"xy":"H-134600;V-43500"} #end)
+    (#4 expr vc
+    #pragma diagram {"xy":"H-134600;V-38100"} #end)
+    (#6 expr vb
+    #pragma diagram {"xy":"H-134600;V-23675"} #end)
+    (#7 expr va
+    #pragma diagram {"xy":"H-134600;V-29075"} #end)
+    (#8 expr vc
+    #pragma diagram {"xy":"H-134600;V-18275"} #end)
+    (#9 expr -0.5_f32
+    #pragma diagram {"xy":"H-76038;V-26950","wh":"12000;3200"} #end)
+    (#10 expr #11 * #12
+      where
+        (#11 group)
+        (#12 group)
+    #pragma diagram {"xy":"H-62162;V-34100"} #end)
+    (#13 expr #14 + #15
+      where
+        (#14 group)
+        (#15 group)
+    #pragma diagram {"xy":"H-89388;V-34100"} #end)
+    (#1 block Utils::Min_3_f32
+    #pragma diagram {"xy":"H-113850;V-23675","wh":"20000;14000"} #end)
+    (#5 block Utils::Max_3_f32
+    #pragma diagram {"xy":"H-113850;V-43500","wh":"20000;14000"} #end)
+    
+    (#22 wire #9 => #12
+    #pragma diagram {"wp":"#9 h2376 v-5250 #12"} #end)
+    (#25 wire #13 => #11
+    #pragma diagram {"wp":"#13 h10113 v-1900 #11"} #end)
+    (#26 wire #10 => #2)
+    (#16 wire #7 => #1 .(i0))
+    (#17 wire #1 .(min) => #15
+    #pragma diagram {"wp":"v0|#1 h4731 v-8525 #15"} #end)
+    (#18 wire #5 .(max) => #14
+    #pragma diagram {"wp":"v0|#5 h4731 v7500 #14"} #end)
+    (#19 wire #8 => #1 .(i2))
+    (#20 wire #4 => #5 .(i2))
+    (#21 wire #3 => #5 .(i1))
+    (#23 wire #6 => #1 .(i1))
+    (#24 wire #0 => #5 .(i0))
+}
+
+function SVPWMGenerator (va:float32;
+                         vb:float32;
+                         vc:float32;
+                         vdc:float32;)
+  returns (duty_a:float32;
+           duty_b:float32;
+           duty_c:float32;)
+{
+  diagram
+    (#3 block ComputeOffset
+    #pragma diagram {"xy":"H8050;V-31883","wh":"20000;14000"} #end)
+    (#4 expr #5 + #6
+      where
+        (#5 group)
+        (#6 group)
+    #pragma diagram {"xy":"H33450;V-12596"} #end)
+    (#7 expr #8 + #9
+      where
+        (#8 group)
+        (#9 group)
+    #pragma diagram {"xy":"H33450;V-2158"} #end)
+    (#10 expr #11 + #12
+      where
+        (#11 group)
+        (#12 group)
+    #pragma diagram {"xy":"H33450;V8279"} #end)
+    (#25 expr vdc
+    #pragma diagram {"xy":"H38788;V-40700"} #end)
+    (#26 expr 1.0_f32
+    #pragma diagram {"xy":"H36788;V-34200","wh":"12000;3200"} #end)
+    (#27 expr #28 / #29
+      where
+        (#28 group)
+        (#29 group)
+    #pragma diagram {"xy":"H86900;V-12596"} #end)
+    (#30 expr #31 / #32
+      where
+        (#31 group)
+        (#32 group)
+    #pragma diagram {"xy":"H86900;V-2158"} #end)
+    (#33 expr #34 / #35
+      where
+        (#34 group)
+        (#35 group)
+    #pragma diagram {"xy":"H86900;V8279"} #end)
+    (#36 expr 0.5_f32
+    #pragma diagram {"xy":"H97500;V-31883","wh":"12000;3200"} #end)
+    (#37 expr #38 + #39
+      where
+        (#38 group)
+        (#39 group)
+    #pragma diagram {"xy":"H114800;V8279"} #end)
+    (#40 expr #41 + #42
+      where
+        (#41 group)
+        (#42 group)
+    #pragma diagram {"xy":"H114800;V-2158"} #end)
+    (#43 expr #44 + #45
+      where
+        (#44 group)
+        (#45 group)
+    #pragma diagram {"xy":"H114800;V-12596"} #end)
+    (#49 expr 0.0_f32
+    #pragma diagram {"xy":"H122500;V-37283","wh":"12000;3200"} #end)
+    (#50 expr 1.0_f32
+    #pragma diagram {"xy":"H122500;V-43225","wh":"12000;3200"} #end)
+    (#51 def duty_a
+    #pragma diagram {"xy":"H194300;V-25433","wh":"10000;3200"} #end)
+    (#52 def duty_b
+    #pragma diagram {"xy":"H194300;V-7627","wh":"10000;3200"} #end)
+    (#53 def duty_c
+    #pragma diagram {"xy":"H194300;V10179","wh":"10000;3200"} #end)
+    (#0 expr vc
+    #pragma diagram {"xy":"H-20375;V-26627"} #end)
+    (#1 expr va
+    #pragma diagram {"xy":"H-20375;V-37139"} #end)
+    (#2 expr vb
+    #pragma diagram {"xy":"H-20375;V-31883"} #end)
+    (#13 block Utils::Max_2_f32
+    #pragma diagram {"xy":"H58800;V-37825","wh":"20000;14000"} #end)
+    (#14 block Utils::Clamp
+    #pragma diagram {"xy":"H167225;V8710","wh":"20000;14000"} #end)
+    (#15 block Utils::Clamp
+    #pragma diagram {"xy":"H167225;V-9096","wh":"20000;14000"} #end)
+    (#16 block Utils::Clamp
+    #pragma diagram {"xy":"H167225;V-26902","wh":"20000;14000"} #end)
+    (#17 expr va
+    #pragma diagram {"xy":"H10852;V-10696"} #end)
+    (#18 expr vc
+    #pragma diagram {"xy":"H10852;V10179"} #end)
+    (#19 expr vb
+    #pragma diagram {"xy":"H10852;V-258"} #end)
+    
+    (#21 wire #3 .(offset) => #11
+    #pragma diagram {"wp":"v4000|#3 h3067 v34262 #11"} #end)
+    (#22 wire #3 .(offset) => #8
+    #pragma diagram {"wp":"v0|#3 h5200 v27825 #8"} #end)
+    (#23 wire #3 .(offset) => #5
+    #pragma diagram {"wp":"v-4000|#3 h7333 v21387 #5"} #end)
+    (#54 wire #10 => #34
+    #pragma diagram {"wp":"#10 h39600 v-1900 #34"} #end)
+    (#55 wire #7 => #31
+    #pragma diagram {"wp":"#7 h39600 v-1900 #31"} #end)
+    (#56 wire #4 => #28
+    #pragma diagram {"wp":"#4 h39600 v-1900 #28"} #end)
+    (#62 wire #36 => #44, #41, #38
+    #pragma diagram {"wp":"#36 h3800[h1000[h1000 v17387 #44, v27825 #41], v38262 #38]"} #end)
+    (#63 wire #27 => #45
+    #pragma diagram {"wp":"#27 h7467 v1900 #45"} #end)
+    (#64 wire #30 => #42
+    #pragma diagram {"wp":"#30 h7467 v1900 #42"} #end)
+    (#65 wire #33 => #39
+    #pragma diagram {"wp":"#33 h10450 v1900 #39"} #end)
+    (#20 wire #18 => #12)
+    (#24 wire #19 => #9)
+    (#46 wire #17 => #6)
+    (#47 wire #0 => #3 .(vc))
+    (#48 wire #2 => #3 .(vb))
+    (#57 wire #1 => #3 .(va))
+    (#58 wire #13 .(max) => #35
+    #pragma diagram {"wp":"v4000|#13 h2821 v44004 #35"} #end)
+    (#59 wire #13 .(max) => #32
+    #pragma diagram {"wp":"v0|#13 h4464 v37567 #32"} #end)
+    (#60 wire #13 .(max) => #29
+    #pragma diagram {"wp":"v-4000|#13 h6107 v31129 #29"} #end)
+    (#61 wire #26 => #13 .(i1))
+    (#66 wire #25 => #13 .(i0))
+    (#67 wire #43 => #16 .(val)
+    #pragma diagram {"wp":"#43 h5888 v-10306 #16"} #end)
+    (#68 wire #14 .(out) => #53
+    #pragma diagram {"wp":"v1469|#14 #53"} #end)
+    (#69 wire #50 => #16 .(max), #15 .(max), #14 .(max)
+    #pragma diagram {"wp":"#50 h11512[h4776[h9550 v12323 #16, v33239 #15], v47049 #14]"} #end)
+    (#70 wire #37 => #14 .(val))
+    (#71 wire #15 .(out) => #52
+    #pragma diagram {"wp":"v1469|#15 #52"} #end)
+    (#72 wire #49 => #16 .(min), #15 .(min), #14 .(min)
+    #pragma diagram {"wp":"#49 h3500[h3238[h14324 v10381 #16, v29906 #15], v43334 #14]"} #end)
+    (#73 wire #40 => #15 .(val)
+    #pragma diagram {"wp":"#40 h34538 v-2610 #15"} #end)
+    (#74 wire #16 .(out) => #51
+    #pragma diagram {"wp":"v1469|#16 #51"} #end)
+}
+
+const M_PERIOD: int32 = 100;
+
+function Test_Park (ialpha:float32;
+                    ibeta:float32;
+                    sin_t:float32;
+                    cos_t:float32;)
+  returns (valpha:float32;
+           vbeta:float32;)
+{
+  diagram
+    (#0 block Park
+    #pragma diagram {"xy":"H-20900;V-27050","wh":"20000;14000"} #end)
+    (#1 block InvPark
+    #pragma diagram {"xy":"H14100;V-19550","wh":"20000;14000"} #end)
+    (#2 expr ialpha
+    #pragma diagram {"xy":"H-46400;V-32450","wh":"10000;3200"} #end)
+    (#3 expr ibeta
+    #pragma diagram {"xy":"H-46400;V-28950","wh":"10000;3200"} #end)
+    (#4 expr sin_t
+    #pragma diagram {"xy":"H-46400;V-17650","wh":"10000;3200"} #end)
+    (#5 expr cos_t
+    #pragma diagram {"xy":"H-46400;V-14150","wh":"10000;3200"} #end)
+    (#6 def valpha
+    #pragma diagram {"xy":"H38100;V-21850","wh":"10000;3200"} #end)
+    (#7 def vbeta
+    #pragma diagram {"xy":"H38100;V-16850","wh":"10000;3200"} #end)
+    
+    (#8 wire #2 => #0 .(ialpha))
+    (#9 wire #3 => #0 .(ibeta))
+    (#10 wire #4 => #0 .(sin_t), #1 .(sin_t)
+    #pragma diagram {"wp":"#4 h5125[v-8140 #0, #1]"} #end)
+    (#11 wire #5 => #0 .(cos_t), #1 .(cos_t)
+    #pragma diagram {"wp":"#5 h8375[v-8480 #0, #1]"} #end)
+    (#12 wire #0 .(id) => #1 .(vd)
+    #pragma diagram {"wp":"v4875|#0 #1"} #end)
+    (#13 wire #0 .(iq) => #1 .(vq)
+    #pragma diagram {"wp":"v2625|#0 #1"} #end)
+    (#14 wire #1 .(valpha) => #6
+    #pragma diagram {"wp":"v-2300|#1 #6"} #end)
+    (#15 wire #1 .(vbeta) => #7
+    #pragma diagram {"wp":"v2700|#1 #7"} #end)
+}

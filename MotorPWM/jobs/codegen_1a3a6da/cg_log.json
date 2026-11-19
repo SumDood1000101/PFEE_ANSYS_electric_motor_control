@@ -1,0 +1,37 @@
+{
+"version" : "1",
+"cg_version" : "Version 2.4.0 - Build 0955",
+"log_entries": [
+{
+  "timestamp" : "2026-11-13T07:11:35Z",
+  "tool" : "SWAN-CG",
+  "severity" : "INFO",
+  "message_kind" : "cg_options",
+  "message" : {
+    "target" : "C",
+    "files" : [
+      "..\\..\\assets\\FOC.swan",
+      "..\\..\\assets\\PWM.swan",
+      "..\\..\\assets\\Utils.swan"
+    ],
+    "roots" : [ "PWM::MotorSystem" ],
+    "target_dir" : "out",
+    "keep_assertions" : false,
+    "wrap_c_ops" : false,
+    "warn_error" : false,
+    "significance_length" : 31,
+    "name_length" : 200,
+    "static_locals" : false,
+    "expansion" : [ "Expand", [ ] ],
+    "probe" : [ "Probe", [ ] ],
+    "globals_prefix" : "",
+    "root_interface_as_globals" : false,
+    "basic" : false,
+    "student" : true,
+    "prototyping" : false
+  }
+}],
+"warnings_count" : 0,
+"errors_count" : 0,
+"failures_count" : 0
+}
